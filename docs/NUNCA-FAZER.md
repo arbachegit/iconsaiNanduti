@@ -5,9 +5,9 @@
 > que passam a reger o `nanduti`. A fonte da verdade continua sendo o arquivo do fiscal:
 > divergiu, o fiscal manda. Nada abaixo desta linha foi alterado na propagação.
 >
-> Nesta rodada o arquivo foi de 38 para **47 artigos**, escritos por **cinco sessões**:
-> §39 (process) · §40–42 (superadmin) · §43–44 (atlas) · §45 e a renumeração
-> (projects-90) · §46 (movie, era artigo local que colidia) · §47 (esta sessão).
+> Esta rodada leva o arquivo a **49 artigos**, escritos por **seis sessões**. Os dois
+> últimos, §48 e §49, chegaram depois da consolidação de 47 — a fonte anda, e uma
+> contagem de propagação envelhece no minuto seguinte (§40).
 
 ---
 
@@ -1343,3 +1343,59 @@ pergunta.
 > **NUNCA** deduza o padrão de autorização do repositório. **Leia o vizinho**:
 > `ls app/api/*/route.ts` e abra um. O padrão está escrito lá, e ler custa menos
 > que o deploy que o 500 derruba.
+
+---
+
+## 48. Rodou os testes que **achou** que foram afetados, e chamou de verificado
+
+**O que foi feito.** Uma mudança acrescentou um segmento novo ao registro de uma
+aplicação. Antes de commitar, a sessão rodou **4 arquivos de teste** — os que
+ela sabia ter mexido —, viu verde e empurrou.
+
+**A consequência medida (23/08/2026).** O CI rodou os **201 arquivos** e achou
+**13 falhas**, todas em cascata da mesma mudança. `Deploy: failure`. Produção
+seguiu servindo o build do dia anterior por **um dia inteiro**, enquanto a
+sessão relatava a entrega como feita.
+
+As 13 estavam em arquivos que ninguém teria escolhido a dedo: contrato de outra
+aplicação, registro de indicadores, script de cadastro de canal, seis migrações
+com `CHECK constraint`. **O alcance de uma mudança em registro compartilhado não
+é intuível** — é justamente por isso que existe suíte.
+
+**Por que é a família do §1.** Rodar o subconjunto que se supõe afetado mede a
+*hipótese da sessão sobre o alcance*, não o alcance. O instrumento respondeu com
+precisão a uma pergunta diferente da pretendida, e por isso devolveu **verde
+legítimo** em vez de erro. Erro grita; pergunta trocada, não.
+
+**Método.** `npx vitest run` **inteiro** antes de commitar, sempre. Dois minutos.
+Descobrir no CI custou um dia de produção parada e três commits de conserto.
+
+---
+
+## 49. Dois gates em contradição direta: cumprir um era violar o outro
+
+**O que foi feito.** Um teste de contrato exigia que o manifesto de escopo
+declarasse um caminho literal (`AGENTS.md`), herdado de um pedido antigo. O
+verificador de colisão entre agentes proíbe declarar caminho reivindicado por
+outra frente — e `AGENTS.md` é de outra frente.
+
+**A consequência medida (23/08/2026).** O manifesto nasceu inflado com **5
+caminhos de terceiros, 4 deles nunca tocados** pela sessão, só para satisfazer o
+teste. O verificador de colisão então reprovou o mesmo manifesto por declará-los.
+Nenhum dos dois gates estava quebrado; os dois estavam certos sobre coisas
+incompatíveis, e o custo apareceu como manifesto desonesto — exatamente o que o
+SCOPE LOCK existe para impedir.
+
+**A causa.** O teste media a **forma** (um caminho literal) em vez da
+**garantia** (o manifesto é fechado e honesto). Asserção sobre literal envelhece
+com o primeiro pedido diferente, e o que ela produz não é reprovação: é gente
+contornando o gate.
+
+**Método.** Gate sobre manifesto afirma garantia: *todo caminho declarado existe,
+e todo caminho declarado é reivindicado por quem assina o manifesto*. Isso é
+estritamente mais forte que o literal antigo, e não pode contradizer o
+verificador de colisão porque lê a mesma fonte que ele.
+
+**A regra geral.** Ao encontrar dois gates que não podem ser satisfeitos ao mesmo
+tempo, **não escolha um**. O que está errado é o que mede forma — troque-o pela
+garantia, e prove por contra-exemplo que a versão nova ainda reprova.
