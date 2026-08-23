@@ -1,9 +1,11 @@
-> **Procedência (propagado em 20/08/2026).** Cópia **literal** de
-> `~/projects/APP/fiscal/docs/NUNCA-FAZER.md`, por ordem do dono (`CLAUDE.md §−1.14`).
-> Os casos narrados aconteceram no **fiscal**, entre 17 e 20/08/2026 — não neste
-> repositório. O que vale aqui são as normas em **NUNCA**, que passam a reger o
-> `nanduti`. A fonte da verdade continua sendo o arquivo do fiscal: divergiu, o
-> fiscal manda. Nada abaixo desta linha foi alterado na propagação.
+> **Procedência (propagado em 20/08/2026, atualizado em 23/08/2026).** Cópia
+> **literal** de `~/projects/APP/fiscal/docs/NUNCA-FAZER.md`, por ordem do dono
+> (`CLAUDE.md §−1.14`). Os casos narrados aconteceram no **fiscal** e no **rotas**,
+> entre 17 e 22/08/2026 — não neste repositório. O que vale aqui são as normas em
+> **NUNCA**, que passam a reger o `nanduti`. A fonte da verdade continua sendo o
+> arquivo do fiscal: divergiu, o fiscal manda. Nada abaixo desta linha foi alterado
+> na propagação. Em 23/08/2026 entraram as seções **35 a 38** (os erros publicados
+> no DoD do Rotas) e as melhorias no §14 e em *Erros de método*.
 
 ---
 
@@ -260,6 +262,13 @@ Resultado: os três passos respondem corretos em produção — o mecanismo do l
 funciona. Onde ele emperrou para o dono continua **sem medição**, e isso está
 declarado em vez de suposto.
 
+**A forma oposta do mesmo erro está no §37** (22/08, `rotas`): lá o agente não
+fabricou estado nenhum — usou um instrumento (`curl` anônimo) que **nunca entra**
+no caminho autenticado, e depois um (`-H "Cookie:"` fixo) que **desfaz o conserto
+que estava medindo**. Fabricar o destino e nunca alcançar a estrada são os dois
+lados da mesma pergunta trocada: **este instrumento chega a passar pela linha que
+eu mudei?**
+
 ---
 
 ## 15. Escreveu o gate e não ligou ao pipeline — duas vezes, no mesmo dia
@@ -483,6 +492,68 @@ linha "limpa" depois de `Description`.
 
 ---
 
+## 33. Consertou o fornecedor numa fatura e deu o defeito por morto
+
+20/08. O extrator passou a varrer o documento inteiro e a decidir por prova.
+Testei na fatura que quebrou, na Neo4j, e em mais uma da ElevenLabs. Verde.
+
+O dono abriu o aplicativo e mostrou **outra** fatura da ElevenLabs — mesmo
+fornecedor, mesmo emissor, layout diferente — com o fornecedor lido como:
+
+> `model-level charges are available in the usage analytics tab
+> (https://elevenlabs.io/app/developers/analytics/usage).`
+
+Duas causas, as duas na mesma linha de filtro:
+
+1. o nome legal vinha `Eleven Labs Inc. @elevenlabs` — com o handle da rede
+   social colado — e a regra que descarta e-mail jogava fora **qualquer** linha
+   com `@`, inclusive o nome;
+2. a frase de rodapé sobreviveu porque o filtro de URL testava `\bhttp\b`, e
+   `\bhttp\b` **não casa com `https`**.
+
+Nenhuma das duas apareceu nas três faturas que testei. Testar "mais de um
+layout" não é testar: **duas faturas do MESMO fornecedor tinham layouts
+diferentes**, e a que quebrou não estava na minha amostra — estava na tela do
+dono.
+
+E a terceira falha foi de fala: eu havia dito que a linha feia na fila era
+"resíduo da versão antiga". Não era. Bastava rodar o extrator atual naquele
+arquivo — o que eu só fiz depois que o dono insistiu.
+
+> **NUNCA** dê um defeito de extração por resolvido testando os documentos que
+> você escolheu. Rode o extrator ATUAL contra o documento QUE O USUÁRIO ESTÁ
+> VENDO, sempre. A amostra que você monta tem o viés do conserto que você
+> acabou de escrever.
+
+> **NUNCA** classifique o que está na tela do dono como "resíduo" sem medir.
+> Resíduo é conclusão, e conclusão sem medição é palpite com cara de
+> diagnóstico.
+
+---
+
+## 34. Entregou a tela sem a saída — só dava para aceitar
+
+19–20/08. A modal de revisão de orçamento oferecia **inserir** a linha proposta
+ou fechar no X. Não havia como **recusar**. O dono pediu o botão em 20/08
+("faltou o cancelar nesta tela"), e a sessão foi atrás de outro defeito e não
+voltou — ele teve que pedir de novo, com print: *"continua sem o botão de
+cancelar ou não aprovar"*.
+
+Enquanto isso, cada proposta errada era um item permanente na fila: aceitar
+sujava o orçamento, e não aceitar deixava a fila crescendo para sempre.
+
+> **NUNCA** entregue uma tela de decisão com um caminho só. Se existe "aprovar",
+> existe "recusar" — e recusar tem que dizer o que acontece com o que estava
+> vinculado. Aqui: a nota volta para "Não classificadas", e **nenhuma nota é
+> apagada**.
+
+> **NUNCA** deixe um pedido do dono para depois porque apareceu outro defeito no
+> caminho. O que ele pediu é escopo; o que você encontrou é achado. Achado não
+> substitui escopo — e se o pedido não coube, ele tem que sair no relatório
+> como `não feito`, não sumir.
+
+---
+
 ## A estrutura determinística de testes que saiu disto
 
 Depois de três consertos parciais, o dono exigiu: *"temos que fazer rota a rota"*.
@@ -532,6 +603,16 @@ porque estava fora do CI.
 respondia no lugar do harness, e a investigação foi para o lado errado.
 > **NUNCA** conclua a partir de uma medição sem antes perguntar **de onde veio o
 > que estou medindo**.
+
+**Gate que acusa a própria documentação.** A forma invertida dos três acima: em
+22/08 três gates do `rotas` contaram **menção** como **invocação** e reprovaram
+quem tinha feito a coisa certa. Um custou um deploy — janela de 900 caracteres,
+migração com **887 de comentário explicando exatamente aquela armadilha**. Quanto
+melhor o defeito está documentado, mais o contador ingênuo o encontra. Caso
+completo no §36.
+> **NUNCA** deixe gate que procura **ausência** medir sem antes retirar comentário
+> e string. E exija a forma de invocação — `(^|[\s;&|(])<cmd>\s` —, nunca a
+> ocorrência do texto.
 
 ---
 
@@ -656,3 +737,227 @@ O padrão de remetente do ecossistema, extraído dos apps que já enviam:
 > essa prova de dentro do pipeline é o log de entrega do Resend — mais um motivo
 > para o envio não ficar com terceiro.
 
+## 29. Chamou vídeo decorativo de filme e entregou uma standalone sem comportamento de scroll
+
+20/08. Na standalone do Movie, o agente colocou no hero um vídeo conceitual já
+existente da ORBX, sem relação com o produto e sem o set de filmagem solicitado,
+e chamou o resultado de filme. Em seguida construiu uma página vendedora cujos
+números eram texto estático e cujas cenas apareciam uma vez, sem ativar, resetar
+e repetir quando o dono descia, subia e descia novamente.
+
+Nada havia sido publicado em produção; o erro estava no localhost. Ainda assim,
+o custo foi concreto: **duas landings reprovadas**, um ativo incorreto de 12 MB
+adicionado ao projeto e o dono novamente fazendo a auditoria visual que deveria
+ter acontecido antes de pedir aprovação.
+
+> **NUNCA** chame footage, loop, background animado ou vídeo de referência de
+> **filme hero**. O filme do Movie é uma obra produzida para o produto: começa
+> em um set de filmagem, desenvolve uma ação cinematográfica e termina no set.
+> Antes de entrar na página, passa por brief, beat sheet, storyboard, quadro
+> ouro, aprovação, animatic e MVP de uma cena.
+
+> **NUNCA** apresente número literal quando a direção pede número incremental.
+> A contagem começa em zero quando a cena entra no viewport, progride por tempo
+> explícito (`performance.now()`), chega exatamente ao valor contratado e
+> respeita `prefers-reduced-motion`.
+
+> **NUNCA** valide uma standalone animada apenas no primeiro scroll para baixo.
+> Cada cena deve ativar ao entrar, resetar ao sair e repetir ao reentrar, tanto
+> descendo quanto subindo. O teste obrigatório no navegador é
+> **scroll down → scroll up → scroll down**, verificando números, vídeos e todos
+> os elementos embutidos em cada passagem. Não use `getAnimations()[0]`, duração
+> inferida ou animação que depende de ter montado apenas uma vez.
+
+
+## 30. Substituiu uma entrega determinística por um placeholder
+
+20/08. O dono pediu de forma objetiva um filme hero que começasse em um set de
+filmagem e terminasse no mesmo set. Em vez de produzir o artefato solicitado, o
+agente inseriu na página pública um quadro abstrato com os textos “FILME HERO ·
+GATE CRIATIVO” e “SET / AÇÃO / SET”, acompanhado de uma explicação de que o
+filme ainda seria feito.
+
+O placeholder ocupou a área nobre da standalone como se fosse conteúdo e obrigou
+o dono a perguntar se aquilo era um filme. **O que foi colocado no ar não era
+filme.** Era uma representação abstrata da ausência do filme. O custo foi uma
+nova reprovação visual, mais uma interrupção do trabalho e uma geração de vídeo
+iniciada somente depois que a ausência ficou exposta no navegador.
+
+> **NUNCA** substitua uma entrega pedida de forma determinística por placeholder,
+> mock, esqueleto, caixa abstrata, texto “em produção” ou explicação sobre o que
+> será feito. Se o pedido é “insira um filme”, a condição de conclusão é haver um
+> arquivo de vídeo real, reproduzível e validado no local contratado.
+
+> **NUNCA** coloque a representação da ausência dentro da interface final.
+> Quando o artefato obrigatório ainda não existe, a entrega permanece bloqueada
+> fora da página. O agente deve produzir, testar e só então inserir. Um gate
+> interno orienta o processo; ele não substitui o resultado que o usuário verá.
+
+> **NUNCA** chame intenção, wireframe ou promessa de implementação de MVP
+> funcional. Para mídia, a prova mínima é o arquivo real carregando no navegador,
+> com início, ação e fim conferidos visualmente. Para qualquer outra entrega
+> determinística, a prova é o comportamento pedido executado no contexto real.
+
+
+## 31. Inventou um reveal horizontal para títulos sem que isso tivesse sido pedido
+
+20/08. Na standalone do Movie, o agente aplicou
+`clip-path: inset(0 100% 0 0)` aos cabeçalhos e blocos principais. O resultado
+carregava os títulos da esquerda para a direita, como uma cortina que revelava
+caixas inteiras. Esse movimento não constava no pedido e ficou visualmente
+grosseiro. O dono havia definido duas linguagens aceitáveis: **fade in dos
+elementos** ou **typewriter das strings**.
+
+> **NUNCA** invente uma linguagem de entrada para títulos quando a direção de
+> movimento já foi especificada. Se o contrato diz fade in ou typewriter, escolha
+> uma dessas duas por função: fade in para elementos compostos; typewriter para
+> strings cuja escrita progressiva tenha significado.
+
+> **NUNCA** use `clip-path`, máscara lateral, `translateX` ou expansão de
+> largura para simular que um título “carrega” da esquerda para a direita sem
+> aprovação explícita. Build verde e repetição no scroll não aprovam uma direção
+> visual que nunca foi contratada.
+
+> **NUNCA** aplique a mesma entrada indiscriminadamente a cabeçalho, documento,
+> grade, editor e governança. Cada movimento deve ter função definida e o teste
+> visual precisa confirmar fade in ou typewriter — não apenas presença no DOM.
+
+## 32. Repetiu o mesmo filme em espaços que exigiam filmes distintos
+
+20/08. O mesmo arquivo `/media/orbx-movie-set-hero.mp4` foi inserido no hero,
+na demonstração do editor e no encerramento da standalone. O agente tratou três
+reproduções do mesmo MP4 como se fossem três usos audiovisuais válidos, embora o
+dono tivesse pedido exemplos de IA diferentes, incluindo anime, filme realista e
+ficção científica, com três filmes de cada tipo.
+
+> **NUNCA** conte a repetição do mesmo arquivo como novo filme, nova cena ou novo
+> exemplo. Slots semanticamente diferentes exigem ativos diferentes. O gate deve
+> comparar hash do arquivo, origem, estilo principal, beat sheet e função
+> narrativa; hash repetido em slots distintos reprova a entrega.
+
+> **NUNCA** use o hero como vídeo do editor ou repita o hero no encerramento. A
+> abertura e o final podem pertencer à mesma narrativa, mas devem ser planos ou
+> segmentos próprios, produzidos para a função de cada posição — nunca o mesmo
+> loop duplicado.
+
+> **NUNCA** monte uma galeria multiformato com variações nominais sobre a mesma
+> mídia. Anime, live action realista e ficção científica precisam ter linguagem,
+> composição, movimento, som e arquivo próprios. Três de cada tipo significam
+> **nove filmes distintos**, salvo nova decisão explícita do dono.
+
+---
+
+## 35. Commitou sem nomear caminho e levou o trabalho de outra frente — duas horas depois de ser avisado
+
+22/08, no `rotas`. Três erros de coordenação, no mesmo repositório, no mesmo dia:
+
+1. **Omitiu dois caminhos do manifesto** de escopo. O `SCOPE LOCK` reprovou o
+   deploy e **produção não publicou**. O gate fez exatamente o que devia — mas a
+   entrega ficou parada por uma lista que o agente escreveu de memória.
+2. **`git commit` sem caminhos levou 3 arquivos de outra frente** — e isso
+   **duas horas depois de aquela sessão ter avisado desse risco exato**. Revertido;
+   o trabalho dela ficou íntegro por sorte da revisão, não por método.
+3. **Afirmou defeito em produção que não existia**: contou a referência no template
+   em vez da chamada que passa o valor. Foi a medição da outra sessão que corrigiu.
+
+O item 2 é o mais grave dos três, e não pelo estrago: **o aviso tinha chegado, tinha
+sido lido, e não virou método.** Saber nomear a armadilha não protege de cair nela —
+só o comando protege.
+
+> **NUNCA** rode `git add` ou `git commit` com caminho amplo em repositório
+> compartilhado. São **três** passos, e o terceiro é o que costuma faltar:
+> `git add -- <caminhos>` → **ler** `git diff --cached --name-only` → `git commit --`
+> **repetindo os caminhos**. Sem o terceiro, um arquivo que entrou no índice antes,
+> por outra via, viaja no commit.
+
+> **NUNCA** escreva manifesto, lista de escopo ou inventário a partir da sua memória
+> do que tocou. Gere da medição: `git diff --name-only` contra a base, e confira
+> item a item.
+
+---
+
+## 36. Contou menção como invocação — três vezes no mesmo dia, e uma custou um deploy
+
+22/08, no `rotas`. O mesmo defeito de método em três instrumentos diferentes:
+
+- **No produto:** afirmou defeito em produção porque contou a **referência no
+  template** em vez da **chamada que passa o valor**. O defeito não existia.
+- **Nos gates, três vezes:** escreveu gate que acusou a **própria documentação que
+  impede o erro**. Uma delas **custou um deploy** — a janela do gate era de 900
+  caracteres e a migração tinha **887 de comentário explicando exatamente aquela
+  armadilha**. Quanto melhor o defeito estava documentado, mais o contador ingênuo
+  o encontrava.
+
+É a forma invertida do §15 e da entrada *"gate que mede forma em vez de garantia"*
+em **Erros de método**: lá o gate aprovava o que devia reprovar; aqui ele reprova
+quem fez a coisa certa, e pune quem documentou.
+
+> **NUNCA** conte ocorrência de texto como prova de comportamento. Exija a forma de
+> invocação — `(^|[\s;&|(])<cmd>\s` — e **retire comentário e string antes de medir**.
+> Gate que procura **ausência** é o mais exposto: ele encontra a explicação do erro e
+> chama de erro.
+
+> **NUNCA** entregue gate novo sem a prova negativa **executada antes do commit**:
+> reintroduza o defeito, veja o vermelho, desfaça. Gate que nunca viu vermelho é
+> decoração; gate que só viu vermelho na documentação é armadilha.
+
+---
+
+## 37. Mediu a cadeia de acesso com o instrumento que nunca entra nela — e depois com o que ignora o conserto
+
+22/08, no `rotas`. Duas medições seguidas, as duas honestas na intenção e falsas no
+resultado:
+
+1. **`curl` sem cookie** e a conclusão *"está consertado"*. A rota de renovação de
+   sessão **só roda quando alguém com sessão recarrega e o token já expirou** —
+   `curl` anônimo nunca chega nela. Foi preciso abrir o navegador para ver o laço.
+2. Ao verificar o **próprio conserto**, usou `-H "Cookie: …"`, que **reenvia o cookie
+   em todo salto e ignora o `Set-Cookie` que o apaga**. O teste dizia que o laço
+   continuava — sobre um conserto que estava certo. Só com **jar de cookies**
+   (`--cookie-jar` + `--cookie`) a medição ficou honesta.
+
+O agravante: **1.311 testes e 6 casos de navegador passavam**. O caminho mais comum
+do usuário real era o único não coberto — porque todos os instrumentos entravam pela
+porta anônima.
+
+Complementa o **§14**: lá o agente **fabricou o estado** e pulou a estrada; aqui ele
+usou um instrumento que **nunca entra na estrada**, e depois um que **desfaz o
+conserto que estava medindo**. Mesma família — o instrumento responde a uma pergunta
+diferente da que se faz — em duas formas opostas.
+
+> **NUNCA** conclua sobre um caminho autenticado com instrumento anônimo. Antes de
+> medir, responda: **este instrumento chega a passar pela linha que eu mudei?** Se a
+> resposta for "não sei", ele não serve de prova.
+
+> **NUNCA** force cabeçalho de estado no cliente quando o que está sob teste é o
+> comando que **altera** esse estado. `-H "Cookie:"` fixo torna invisível todo
+> `Set-Cookie` de expurgo. Use jar; deixe o servidor mandar.
+
+---
+
+## 38. Montou o redirecionamento a partir de `req.url` e mandou o dono para o host interno
+
+22/08, no `rotas`, em produção. O dono relatou: *"o rotas está redirecionando para
+`https://localhost:3126/superadmin`"*.
+
+A rota de renovação de sessão montava o destino a partir de **`req.url`**, que atrás
+de proxy carrega o **host interno do contêiner** — não o host público. Todo usuário
+renovando sessão era mandado para um endereço que não existe para ele.
+
+E o conserto revelou um segundo defeito que já estava lá: com a origem certa, o
+caminho virou `/ → refresh → /superadmin → /` **sem fim** — `ERR_TOO_MANY_REDIRECTS`,
+site fora do ar. Causa: a renovação que **falhava** devolvia à porta e **deixava o
+cookie morto**; o salto seguinte reentrava pela mesma porta. Antes, o `localhost:3126`
+transformava o ciclo num **beco sem saída**, e por isso ninguém tinha visto o laço.
+
+> **NUNCA** construa URL de redirecionamento a partir de `req.url`, `request.url`,
+> `Host` ou qualquer coisa que o proxy reescreve. O host público vem de variável
+> declarada. Gate: varrer **toda** rota que redireciona, não só a que quebrou.
+
+> **NUNCA** devolva à porta de acesso sem **apagar todos os cookies da sessão**.
+> Redirecionar com credencial morta no navegador é a receita do laço infinito, e ele
+> aparece só depois que o defeito que o escondia for consertado.
+
+> **NUNCA** leia "o conserto anterior causou isto". Ele **revelou** o que vinha
+> depois. Mas o efeito prático foi o site cair, e é assim que se registra — a
+> distinção explica, não absolve.
