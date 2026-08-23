@@ -1,11 +1,13 @@
-> **Procedência (propagado em 20/08/2026, atualizado em 23/08/2026).** Cópia
-> **literal** de `~/projects/APP/fiscal/docs/NUNCA-FAZER.md`, por ordem do dono
-> (`CLAUDE.md §−1.14`). Os casos narrados aconteceram no **fiscal** e no **rotas**,
-> entre 17 e 22/08/2026 — não neste repositório. O que vale aqui são as normas em
-> **NUNCA**, que passam a reger o `nanduti`. A fonte da verdade continua sendo o
-> arquivo do fiscal: divergiu, o fiscal manda. Nada abaixo desta linha foi alterado
-> na propagação. Em 23/08/2026 entraram as seções **35 a 38** (os erros publicados
-> no DoD do Rotas) e as melhorias no §14 e em *Erros de método*.
+> **Procedência (propagado em 23/08/2026).** Cópia **literal** de
+> `~/projects/APP/fiscal/docs/NUNCA-FAZER.md`, por ordem do dono (`CLAUDE.md §−1.14`).
+> Os casos narrados aconteceram em outros repositórios do ecossistema, entre 17 e
+> 23/08/2026 — não necessariamente neste. O que vale aqui são as normas em **NUNCA**,
+> que passam a reger o `nanduti`. A fonte da verdade continua sendo o arquivo do fiscal:
+> divergiu, o fiscal manda. Nada abaixo desta linha foi alterado na propagação.
+>
+> Nesta rodada o arquivo foi de 38 para **47 artigos**, escritos por **cinco sessões**:
+> §39 (process) · §40–42 (superadmin) · §43–44 (atlas) · §45 e a renumeração
+> (projects-90) · §46 (movie, era artigo local que colidia) · §47 (esta sessão).
 
 ---
 
@@ -613,6 +615,20 @@ completo no §36.
 > **NUNCA** deixe gate que procura **ausência** medir sem antes retirar comentário
 > e string. E exija a forma de invocação — `(^|[\s;&|(])<cmd>\s` —, nunca a
 > ocorrência do texto.
+**Gate que mede o artefato errado.** Em 23/08 o harness de e-mail leu a **árvore
+de trabalho** enquanto o commit publicado levava o defeito — verde legítimo sobre
+um arquivo que não era o do ar, em quatro repositórios. Consertado pela metade,
+continuou verde: só a afirmação que lia arquivo passou a ler o ref, e as nove que
+renderizavam ficaram no disco. Caso completo no §45.
+> **NUNCA** deixe gate de publicação medir o disco. Ele mede **o ref que vai ao
+> ar** — e, ao aprender a receber um ref, leva **todas** as afirmações junto.
+
+**Prova que passaria antes do conserto.** Em 23/08 o cron do sweep foi dado por
+provado porque a rota devolveu `200` a uma chamada manual — a mesma resposta que
+daria antes de o cron existir. Caso completo no §40.
+> **NUNCA** aceite como prova de automação uma medição que **você mesmo
+> disparou**. Se a asserção passa igual com e sem o item entregue, ela não mede o
+> item. Antes de fechar, pergunte: **esta prova falharia ontem?**
 
 ---
 
@@ -876,7 +892,7 @@ só o comando protege.
 
 ---
 
-## 36. Contou menção como invocação — três vezes no mesmo dia, e uma custou um deploy
+## 36. Contou menção como invocação — cinco vezes em dois dias, e duas custaram deploy
 
 22/08, no `rotas`. O mesmo defeito de método em três instrumentos diferentes:
 
@@ -900,6 +916,39 @@ quem fez a coisa certa, e pune quem documentou.
 > **NUNCA** entregue gate novo sem a prova negativa **executada antes do commit**:
 > reintroduza o defeito, veja o vermelho, desfaça. Gate que nunca viu vermelho é
 > decoração; gate que só viu vermelho na documentação é armadilha.
+
+**23/08 — a forma mais íntima do mesmo erro: o assert que mede o próprio
+comentário.** Duas vezes no mesmo dia, num propagador que alterava 12 arquivos.
+
+A guarda escrita para impedir o defeito era literal:
+
+```python
+assert 'calc(100% + 64px)' not in s, 'calc sobrou'
+```
+
+E o comentário escrito para **explicar** o defeito continha, de propósito, a
+string `calc(100% + 64px)`. A guarda encontrou o próprio texto que documentava o
+conserto e reprovou os 12 arquivos — todos corretos. Uma hora depois, a mesma
+coisa com `ACCENT_2`: a nota que explicava por que a constante saiu citava o nome
+dela, e o `assert 'ACCENT_2' not in s` disparou.
+
+O que diferencia esta forma das três de 22/08: ali o gate acusava documentação
+**alheia**. Aqui ele acusou a **explicação que o próprio autor acabara de
+escrever, no mesmo commit, sobre aquele exato defeito**. Quem escreveu a guarda,
+escreveu o comentário e conhecia a armadilha caiu nela mesmo assim — que é a
+razão de o §9 do CLAUDE.md dizer que saber nomear a armadilha não protege dela.
+
+O conserto é o mesmo dos outros quatro, e é uma linha:
+
+```python
+codigo = '\n'.join(l for l in s.split('\n') if not l.lstrip().startswith('//'))
+assert 'calc(100% + 64px)' not in codigo
+```
+
+> **NUNCA** deixe um `assert` de propagador medir o texto bruto do arquivo. Ele
+> vai medir o comentário que você escreveu para explicar o que está impedindo —
+> e quanto melhor a explicação, mais certeira a reprovação falsa. Retire
+> comentário **antes** de afirmar ausência, inclusive nas guardas de uso único.
 
 ---
 
@@ -961,3 +1010,336 @@ transformava o ciclo num **beco sem saída**, e por isso ninguém tinha visto o 
 > **NUNCA** leia "o conserto anterior causou isto". Ele **revelou** o que vinha
 > depois. Mas o efeito prático foi o site cair, e é assim que se registra — a
 > distinção explica, não absolve.
+
+## 39. Escreveu um auditor de fronteira e ele declarou "sem área logada" para o app que tem 59 guardas
+
+**Data:** 23/08/2026. **Custo:** o primeiro relatório do parque, entregue ao dono, estava errado em 8 dos 28 repositórios — e errado do jeito pior: dizendo que estava tudo bem.
+
+O dono mandou provar que "tanto movie, rotas e qualquer outro aplicativo tem
+separação explícita do que é área pública ou área logada". O auditor foi escrito
+com esta lista de marcas de sessão:
+
+```js
+const SESSAO = /currentSession|requireSession|getSession|currentSuperadmin|checkSession/;
+```
+
+São os cinco nomes usados no Process e no superadmin. O parque não fala esse
+dialeto: o `xray` chama `isAuthenticated` **59 vezes**, o `movie` e o `rotas`
+chamam `verifySession`, o `crm` chama `getSession`. Resultado da primeira
+varredura: `xray  60 telas  sem área logada`. Sessenta telas de área logada
+classificadas como públicas — pelo instrumento contratado para achar exatamente
+esse defeito.
+
+**Três erros da mesma família, todos na mesma tarde:**
+
+1. **Vocabulário local tomado por vocabulário universal.** A lista de marcas saiu
+   da cabeça, não de um `grep` no parque. Um `grep -rhoE` de trinta segundos nos
+   28 repositórios teria devolvido a lista real.
+2. **Só `page.tsx` foi lido.** No App Router quem guarda uma página costuma ser um
+   `layout.tsx` acima dela — que é a forma **correta** de proteger. Ler só a
+   página acusa de indefesa toda tela bem feita. O conserto foi subir a árvore de
+   diretórios juntando a cadeia de layouts, e perguntar se **alguém** na cadeia
+   guarda.
+3. **`middleware.ts` procurado pelo nome antigo.** O Next 16 renomeou para
+   `proxy.ts`. O `movie` declara a fronteira em `proxy.ts:32` com
+   `matcher: ["/admin/:path+"]` — e ia ser acusado de não declarar nada.
+
+**A regra.** Auditor de parque não pode nascer do vocabulário de um app. Antes da
+primeira linha do gate: `grep` no parque inteiro para descobrir como cada
+repositório chama a coisa, e a lista de marcas vira o resultado da medição — não
+a sua premissa. Nome novo que aparecer depois entra na lista; ele **nunca** vira
+"não tem".
+
+**O que a versão corrigida achou, e é real.** `movie/app/layout.tsx:45` monta
+`<header className="site-header">` para **todas** as rotas, `/admin/*` inclusive,
+e `movie/app/page.tsx:138` monta o seu próprio. São os dois cabeçalhos da foto do
+dono — a casca pública embrulhando a área logada. O `atlas` decide sessão dentro
+de `'use client'` em 30 telas: o servidor entrega a casca logada e só depois o JS
+resolve se aquela pessoa podia vê-la.
+
+**O gate que faltava no gate.** `tests/unit/area-boundary.test.ts` escreve no
+disco oito árvores de rotas mínimas — uma correta, uma com casca empilhada, uma
+com guarda no cliente, uma sem guarda nenhuma — e exige que o auditor reprove as
+erradas e aprove a certa. Sem isso, `total de achados: 0` significa duas coisas
+que ninguém consegue distinguir: o código está certo, ou o instrumento não sabe
+olhar (§4 do CLAUDE.md global).
+
+---
+
+---
+
+## 40. Escreveu a asserção que passaria igual **sem** o conserto
+
+**Data:** 23/08/2026. **Custo:** um sweep de sessões esteve escrito, correto e
+**nunca executado** por semanas, com o teste dele verde o tempo todo.
+
+A rota `/api/session/sweep` revoga sessões cuja aba fechou e não voltou. O teste
+E2E a chamava com o segredo e conferia `200`. Verde.
+
+O que o verde não dizia: **não havia cron chamando aquela rota.** O segredo não
+existia em ambiente nenhum. A rota respondia `200` para quem a chamasse — e
+ninguém chamava. O teste media *"a rota funciona quando alguém a chama"*, e a
+pergunta que importava era *"alguém a chama?"*.
+
+O conserto trocou a asserção por outra que **não chama nada**: marca a sessão
+como fechada, espera, e verifica que ela foi revogada sozinha. O timer varreu em
+16 s. Isso prova que ele está instalado, habilitado, com o segredo certo, e
+disparando — que era o item inteiro.
+
+> **O teste da asserção:** ela passaria igual **antes** do conserto? Se sim, ela
+> não mede o conserto. Uma asserção que não distingue os dois estados é
+> decoração com aparência de gate.
+
+Três variantes da mesma família, no mesmo dia:
+
+1. **Media se EU era o chamador.** Contra produção, o teste mandava o token do
+   `.env.local` — que não é o de lá. O `401` era legítimo e o veredito era sobre
+   outra coisa: provava que eu não sou o cron, não que o sweep falha.
+2. **Media duas fontes e chamava as duas de produção.** Dezesseis asserções
+   batiam no alvo remoto; seis liam o contrato do **disco local**. Enquanto o
+   alvo é o build do próprio disco dá no mesmo; contra produção, o relatório
+   dizia "verde contra produção" com seis asserções falando de outro código.
+3. **Media a documentação em vez do sistema.** O `CLAUDE.md` do repositório
+   nomeava um droplet. SSH nele, `build-info.txt` de 17 dias atrás, conclusão
+   entregue: "produção serve build velho". O DNS apontava para **outro** IP, e
+   produção servia o build de minutos antes. `dig +short` responde em um segundo
+   e não envelhece; a linha do documento envelheceu.
+
+**NUNCA** dar por verificada uma asserção sem responder: *ela reprovaria o
+estado anterior ao conserto?* Quando a resposta for não, a asserção mede
+presença e não efeito — e é do §15 que ela é prima, não de um caso isolado.
+
+---
+
+## 41. O relatório saiu verde porque o `echo` leu o exit code do `tail`
+
+**Data:** 23/08/2026. **Custo:** um typecheck com quatro erros na tela foi
+declarado limpo, na mesma linha em que os erros apareciam.
+
+O comando:
+
+```bash
+npm run typecheck 2>&1 | tail -4 && echo "typecheck limpo"
+```
+
+Impresso: os quatro erros, e logo abaixo, `typecheck limpo`.
+
+Em pipeline, `&&` avalia o status do **último** comando — aqui o `tail`, que
+sempre sai `0`. O `echo` nunca dependeu do typecheck. E a mentira é da pior
+espécie: o texto do erro **e** o carimbo de sucesso na mesma saída, com o segundo
+sendo o que se lê.
+
+**NUNCA** encadear afirmação de sucesso a um pipeline sem `set -o pipefail`, ou
+sem capturar o status explicitamente:
+
+```bash
+npm run typecheck > /tmp/tc.log 2>&1; st=$?
+tail -4 /tmp/tc.log
+[ $st -eq 0 ] && echo "typecheck limpo"
+```
+
+Vale para toda a família `cmd | grep`, `cmd | head`, `cmd | tee`: o filtro apaga
+o veredito do comando que interessa.
+
+---
+
+## 42. Typecheck, build e console verdes, e a tela sem o gráfico
+
+**Data:** 23/08/2026. **Custo:** dois defeitos que nenhuma ferramenta automática
+do repositório viu, um deles só visível abrindo a página.
+
+**O gráfico invisível.** As faixas da barra têm altura em **porcentagem**. O
+elemento pai não tinha `height`, e o `align-items: flex-end` do avô o encolhia à
+altura do conteúdo — conteúdo que é feito de porcentagens dessa mesma altura.
+Resultado: cinco barras presentes no DOM, `0px` cada, área em branco na tela.
+`npm run typecheck` verde, `npm run build` verde, console sem um aviso.
+
+Medido em navegador, que foi o único instrumento que viu:
+
+```js
+getComputedStyle(document.querySelector('[class*=pilha]')).height  // "0px"
+```
+
+**O comentário que se fechou sozinho.** Um caminho com coringa —
+`apps/` + coringa + `/docs` — escrito dentro de um comentário de bloco. Coringa
+seguido de barra **encerra o comentário**, e as 250 linhas seguintes viraram
+código. O typecheck acusou erro de sintaxe **na linha 168**, longe da causa, com
+mensagens sobre template literal e declaração de módulo.
+
+E a primeira correção **reescreveu a sequência** dentro da frase que a explicava,
+quebrando o segundo typecheck pelo mesmo motivo.
+
+> **NUNCA** confiar que build verde significa tela certa. Percentual sobre pai
+> sem altura, `overflow` que corta, e z-index invertido produzem página em branco
+> com toda a cadeia de gates aprovando. É o que a §−1.9 existe para pegar — e ela
+> só pega se alguém **olhar** a página, não só o status HTTP dela.
+
+> **NUNCA** escrever coringa seguido de barra dentro de comentário de bloco. Use
+> `<app>` ou `[nome]` no lugar do coringa — inclusive na frase que explica esta
+> armadilha.
+
+---
+
+## 43. Tratou ausência normal de sessão como erro HTTP e sujou o console
+
+**Data:** 23/08/2026. **Custo:** a primeira rodada E2E terminou com **3 testes
+verdes e 1 vermelho**; o navegador registrou um erro de recurso para o estado
+normal de visitante ainda não autenticado.
+
+O endpoint `POST /sessao` respondia `401` quando não havia cookie. A UI tratava o
+resultado corretamente, mas o Chromium ainda publicava `Failed to load resource`
+no console. Trocar o mock de `404` para `401` só mudou o texto do erro e manteve
+o defeito: o teste estava reproduzindo fielmente um contrato ruidoso.
+
+O conserto foi fazer a consulta de sessão representar ausência como dado:
+`HTTP 200 {"user":null}`. Rotas protegidas continuam convertendo esse estado em
+`401`; só a consulta pública de estado deixa de fingir que um recurso falhou.
+
+> **NUNCA** use erro HTTP para um estado esperado de uma consulta pública de
+> sessão quando a própria página precisa executá-la para todo visitante. Meça no
+> navegador: `npx playwright test e2e/acesso.spec.ts` deve terminar em
+> **4 passed** e console vazio.
+
+---
+
+---
+
+## 44. Autorizou pelo pathname sem normalizar basePath e barra final
+
+**Data:** 23/08/2026. **Custo:** **duas rodadas E2E vermelhas** antes de o acesso
+direto a `/admin/configuracoes/` ser realmente bloqueado.
+
+A primeira guarda comparava apenas `/configuracoes`. No artefato exportado,
+`usePathname()` entregou `/admin/configuracoes/`: havia ao mesmo tempo o basePath
+e a barra final. A primeira correção removeu só `/admin` e ainda deixou
+`/configuracoes/`, portanto continuou liberando a página.
+
+> **NUNCA** faça decisão de autorização sobre pathname bruto. Remova o basePath,
+> normalize a barra final e teste a URL digitada diretamente — menu oculto não
+> impede navegação. O gate é `npx playwright test e2e/acesso.spec.ts` com o caso
+> “usuário comum não abre rota privilegiada diretamente”.
+
+---
+
+## 45. O gate mediu a árvore de trabalho enquanto o commit levava o defeito — e ficou verde nos quatro repositórios errados
+
+23/08, no e-mail dos 12 aplicativos. A sequência, que parece inofensiva e não é:
+
+1. `git add` no arquivo, cedo, para deixar pronto;
+2. horas depois, um segundo conserto **editou o mesmo arquivo** na árvore;
+3. `git commit` — que grava o **índice**, não a árvore, e levou a versão velha;
+4. o harness rodou e deu **verde**, porque lê o **disco consertado**;
+5. `git push` em quatro repositórios.
+
+O gate afirmava "12 aplicativos, 10 afirmações, todas verdes" e estava dizendo a
+verdade **sobre um arquivo que não era o publicado**. Um dos quatro reprova aviso
+de lint (`--max-warnings 0`) e teria derrubado o deploy; escapou só porque a
+barreira do dono impediu o push antes de o defeito ser achado.
+
+É a versão de artefato do §37: lá o instrumento não entrava no caminho medido;
+aqui ele entrava no caminho certo, do **artefato errado**. E é o §8 do
+`CLAUDE.md` — *"grepar o disco mede a working tree, não o que o CI executa"* —
+cobrado onde ninguém espera: não num `grep` de diagnóstico, mas no gate que
+existe para autorizar a publicação.
+
+**O agravante, e a lição que sobra:** o primeiro conserto do harness deixou
+**apenas a afirmação que lê arquivo** passar a ler o ref; as **nove que
+renderizam** continuaram no disco. O relatório dizia "verde contra origin/main" e
+90% dele ainda media a árvore. Meia-medida num instrumento é pior que nenhuma,
+porque tem a aparência de completa.
+
+Com o conserto inteiro — cada aplicativo materializado num worktree no ref e
+renderizado **de lá** — a primeira rodada acusou **16 falhas em 4 aplicativos**:
+exatamente os que ainda não tinham sido empurrados.
+
+> **NUNCA** dê por publicado o que o gate mediu no disco. Gate que autoriza
+> deploy mede **o ref que vai ser publicado**, não a árvore de quem o rodou. Se
+> ele não sabe receber um ref, ele não sabe responder "está no ar".
+
+> **NUNCA** conserte um instrumento pela metade. Ao ensiná-lo a medir outra
+> fonte, leve **todas** as afirmações junto e prove que as que ficaram para trás
+> não existem — uma sozinha lendo a fonte antiga devolve verde com cara de
+> completo.
+
+> **NUNCA** commite índice que você não acabou de montar. Entre o `git add` e o
+> `git commit`, qualquer edição na árvore fica de fora em silêncio. Confira com
+> `git diff --cached`, não com `git diff`.
+
+---
+
+## 46. Deixou uma cena de scroll invisível ao cair direto nela, e removeu comportamento de movimento já aprovado
+
+21/08. Na landing do Movie, cada seção entra por animação quando aparece no
+viewport (`ScrollScene` + `IntersectionObserver`). Ao saltar direto para uma
+seção — link de âncora do menu, deep-link com `#`, recarregar já rolado — o
+observer atachava depois de o navegador já ter posicionado a seção, o callback
+inicial não pegava o estado, e o conteúdo ficava **invisível** até o primeiro
+scroll. Com a entrada estendida para ~4 s por tela, o buraco ficou maior.
+
+O conserto foi ativar a cena se ela já estiver em vista no momento em que o
+componente monta, e não depender só do observer. O dono pediu que isso, os
+números que incrementam e o comportamento de scroll virassem regra permanente.
+
+> **NUNCA** dependa apenas do `IntersectionObserver` para revelar uma cena.
+> Ative também no `mount` quando a seção já estiver visível (medindo
+> `getBoundingClientRect` contra a viewport). Cair direto numa seção por âncora,
+> deep-link ou reload nunca pode deixar o conteúdo invisível esperando um scroll
+> que talvez não venha.
+
+> **NUNCA** entregue uma landing de scroll sem os números incrementando: cada
+> contador começa em **zero** ao entrar no viewport, sobe por tempo explícito
+> (`performance.now()`), chega **exatamente** ao valor contratado e respeita
+> `prefers-reduced-motion`. Número literal parado no lugar de contador é entrega
+> incompleta.
+
+> **NUNCA** valide o movimento só descendo. Cada cena **ativa ao entrar, reseta
+> ao sair e reexecuta ao reentrar**, tanto no **scroll down** quanto no **scroll
+> up**. O teste obrigatório é **scroll down → scroll up → scroll down**,
+> conferindo números, vídeos e todos os elementos embutidos em cada passagem.
+> Remover qualquer uma dessas três — ativação no mount, incremento dos números,
+> reset-e-repete nas duas direções — é regressão, não simplificação.
+
+---
+
+## 47. Usou numa rota de API um helper que **lança** para dizer "não autenticado" — e o 500 escondeu o 401
+
+23/08. Caso medido e consertado pela sessão do `superadmin`, registrado aqui por
+ordem do dono para que não se repita nos outros vinte e sete repositórios.
+
+`lib/superadmin/auth.ts:217` — `requireSession()` **lança** `UnauthorizedError`.
+Em página isso funciona: o layout captura e manda para a porta de acesso. Numa
+**rota de API** a exceção sobe e vira **500**, e o cliente lê *"o servidor
+quebrou"* onde a verdade é *"você não está autenticado"*.
+
+Medido contra o servidor: `sem sessao: 500 (espera 401)`.
+
+**Por que os dois códigos não são intercambiáveis:** eles exigem ações opostas de
+quem chama. `500` diz *tente de novo*. `401` diz *reautentique*. Um cliente
+obediente diante do 500 fica repetindo uma chamada que nunca vai passar, e a
+página de login — que era a saída — nunca aparece.
+
+**O padrão do repositório já era o certo, e estava no vizinho.**
+`app/api/admins/route.ts:12`:
+
+```ts
+if (!(await currentSession()))
+  return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+```
+
+A sessão que errou escreveu, com todas as letras: *"eu **deduzi** o padrão em vez
+de ler o vizinho"*. Esse é o erro debaixo do erro — o arquivo ao lado tinha a
+resposta, e a dedução custou menos esforço que a leitura.
+
+**É a família do `CLAUDE.md §1**, na forma mais direta que já apareceu aqui: o
+instrumento respondeu *"erro de servidor"* a uma pergunta sobre **autenticação**.
+Não era um erro no código de erro; era o código de erro respondendo outra
+pergunta.
+
+> **NUNCA** use, em rota de API, um helper que **lança** para sinalizar
+> não-autenticado. Rota devolve **status**; helper que lança é para renderização
+> de página. Se o mesmo helper serve os dois, ele precisa de duas portas — uma que
+> lança e uma que devolve — e a rota chama a segunda.
+
+> **NUNCA** deduza o padrão de autorização do repositório. **Leia o vizinho**:
+> `ls app/api/*/route.ts` e abra um. O padrão está escrito lá, e ler custa menos
+> que o deploy que o 500 derruba.
