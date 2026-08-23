@@ -5,9 +5,9 @@
 > que passam a reger o `nanduti`. A fonte da verdade continua sendo o arquivo do fiscal:
 > divergiu, o fiscal manda. Nada abaixo desta linha foi alterado na propagação.
 >
-> Esta rodada leva o arquivo a **49 artigos**, escritos por **seis sessões**. Os dois
-> últimos, §48 e §49, chegaram depois da consolidação de 47 — a fonte anda, e uma
-> contagem de propagação envelhece no minuto seguinte (§40).
+> **49 artigos**, escritos por seis sessões. Esta rodada traz o **§35.1**: nomear o
+> caminho no `git add` protege contra levar outro **arquivo**, e não contra levar outro
+> **trabalho no mesmo arquivo**.
 
 ---
 
@@ -889,6 +889,50 @@ só o comando protege.
 > **NUNCA** escreva manifesto, lista de escopo ou inventário a partir da sua memória
 > do que tocou. Gere da medição: `git diff --name-only` contra a base, e confira
 > item a item.
+
+### 35.1 — o caminho explícito não cobre a metade que falta
+
+**Data:** 23/08/2026. **Custo:** uma reestruturação de 590 linhas, de outra frente,
+entrou num commit cuja mensagem fala de gráfico de commits.
+
+A sessão do superadmin fez tudo o que o §35 manda. Usou `git add --` com caminho
+explícito, usou `git commit --` repetindo os caminhos. E ainda assim:
+
+```
+e65d74a  "feat(dashboard): grafico de colina das aplicacoes trabalhadas"
+         app/(painel)/page.tsx | 65 insertions(+), 590 deletions(-)
+```
+
+Ela escreveu **3 linhas** naquele arquivo. As outras 590 deleções eram de outra
+sessão, que tinha reestruturado o mesmo arquivo no disco.
+
+> **A metade que faltava:** nomear o caminho protege contra levar outro
+> **ARQUIVO**; não protege contra levar outro **TRABALHO** no mesmo arquivo.
+> `git add` pega o estado do disco, não o seu pedaço dele.
+
+**E o instrumento prescrito não pega este caso.** `git diff --cached --name-only`
+responde *quais arquivos*, nunca *quanta coisa*. O arquivo estava certo na lista —
+era o arquivo que ela ia mesmo commitar. O que gritava era o tamanho, e o
+`--name-only` não mostra tamanho.
+
+> **NUNCA** feche o commit sem ler `git diff --cached --stat`. Se o número de
+> linhas não bate com o que você escreveu, você está levando trabalho de outra
+> pessoa. Trezentas linhas a mais não é detalhe de formatação: é outra frente.
+
+**A simetria que fecha o caso, e é ela que dói.** Quem fez a reestruturação
+**viu** o card da outra sessão e o preservou por escrito, num comentário do
+arquivo: *"é de outra frente, que estava com este arquivo aberto quando esta
+mudança foi feita. Ficou intocado."* Duas frentes no mesmo arquivo — uma olhou, a
+outra não. **A que olhou foi a que teve o trabalho levado.**
+
+Nada se perdeu, e isso foi medido antes de reportar: o trabalho seguiu íntegro no
+commit e em produção. O que se perdeu foi o rastro. Quem fizer arqueologia daqui a
+um mês vai procurar a reestruturação do dashboard num commit sobre gráficos, e não
+vai achar.
+
+**NUNCA reverta para consertar crédito.** Reverter apagaria trabalho real para
+resolver um problema de histórico. O conserto é um commit vazio de anotação
+(`git commit --allow-empty`) apontando o commit que levou.
 
 ---
 
